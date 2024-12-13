@@ -1,0 +1,93 @@
+#version 330 core
+
+layout(triangles, equal_spacing, ccw) in ;
+
+in vec3 tcWorldPosition[] ;
+
+out vec3 world_position ;
+out vec4 fragment_position_light_space ;
+out float height ;
+out vec3 normal ;
+out float ao ;
+out vec3 albedo ;
+out float roughness ;
+out float fog_density ;
+out float g ;
+out float scattering_coefficient ;
+out vec3 fog_color ;
+
+uniform mat4 view ;
+uniform mat4 projection ;
+uniform mat4 light_projection ;
+uniform mat4 light_view ;
+uniform vec3 camera ;
+uniform sampler2D height_map ;
+uniform sampler2D color_map ;
+uniform vec3 max_position ;
+uniform vec3 min_position ;
+uniform float max_lod ;
+uniform float max_second_derivative ;
+uniform float min_second_derivative ;
+uniform float max_first_derivative ;
+uniform float min_first_derivative ;
+
+
+float calculate_lod( float distance )
+{
+    float minDistance = 1.0f ;
+    float maxDistance = 1000.0f ; // 1500.0f
+    
+    return clamp((distance - minDistance) / (maxDistance - minDistance) * max_lod, 0.0f, max_lod);
+}
+
+void main()
+{
+    world_position = gl_TessCoord.x * tcWorldPosition[0] +
+                     gl_TessCoord.y * tcWorldPosition[1] +
+                     gl_TessCoord.z * tcWorldPosition[2] ;
+          
+    float lod = calculate_lod( length( camera - world_position ) ) ;
+    vec3 normalized_pos = ( world_position - min_position ) / ( max_position - min_position ) ;
+    vec2 texture_coordinates = normalized_pos.xz ;
+
+    vec4 noise = textureLod( height_map, texture_coordinates, lod ) ;
+    
+    float height = noise.x ;
+    normal = normalize( vec3( noise.y, 1.0f, noise.z ) ) ;
+
+    ao = 1.0f - ((noise.w - min_second_derivative) / (max_second_derivative - min_second_derivative)) ;
+
+    ao = mix( 0.0f, 0.1f, ao ) ;
+    
+    albedo = textureLod( color_map, texture_coordinates, lod ).rgb ;
+
+    roughness = ( length( vec2( -noise.y, -noise.z ) ) - min_first_derivative ) / (max_first_derivative - min_first_derivative) ;
+            
+    roughness = mix( 0.9, 1.0f, roughness ) ;
+
+    world_position.y += (4.0f * height) ;
+    
+    gl_Position = projection * view * vec4( world_position, 1.0 ) ;
+    fragment_position_light_space = light_projection * light_view * vec4( world_position, 1.0 ) ;
+
+    fog_density = height / 10.0f ;  ;
+    g = height ;
+    scattering_coefficient = height ;
+    fog_color = vec3(0.5f) ;
+    
+    
+    /*float low_altitude = 0.0f ;
+    float high_altitude = 2.0f ;
+    float min_density = 0.01f ;
+    float max_density = 0.1f ;
+    float low_scatter = 1.0f ;
+    float high_scatter = 2.0f ;
+    float low_g = 0.5f ;
+    float high_g = 1.0f ;
+    vec3 low_color = vec3( 0.45f, 0.45f, 0.45f ) ;
+    vec3 high_color = vec3( 0.55f, 0.55f, 0.55f ) ;
+    fog_density = mix( min_density, max_density, smoothstep(low_altitude, high_altitude, height));
+    scattering_coefficient = mix(low_scatter, high_scatter, smoothstep(low_altitude, high_altitude, height));
+    g = mix( low_g, high_g, smoothstep(low_altitude, high_altitude, height) ) ;
+    fog_color = mix( low_color, high_color, smoothstep(low_altitude, high_altitude, height) ) ;*/
+}

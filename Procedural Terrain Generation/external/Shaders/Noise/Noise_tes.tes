@@ -1,0 +1,277 @@
+#version 330 core
+
+layout(triangles, equal_spacing, ccw) in ;
+
+in vec3 tcWorldPosition[] ;
+
+out vec3 world_position ;
+
+out float height ;
+out vec3 normal ;
+out float ao ;
+
+uniform vec3 max_position ;
+uniform vec3 min_position ;
+
+struct Noise {
+    float value ;
+    vec3 first_derivative ;
+    vec3 second_derivative ;
+} ;
+
+const int p[512] = int[512]( 151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23, 190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203, 117, 35, 11, 32, 57, 177, 33, 88, 237, 149, 56, 87, 174, 20, 125, 136, 171, 168, 68, 175, 74, 165, 71, 134, 139, 48, 27, 166, 77, 146, 158, 231, 83, 111, 229, 122, 60, 211, 133, 230, 220, 105, 92, 41, 55, 46, 245, 40, 244, 102, 143, 54, 65, 25, 63, 161, 1, 216, 80, 73, 209, 76, 132, 187, 208, 89, 18, 169, 200, 196, 135, 130, 116, 188, 159, 86, 164, 100, 109, 198, 173, 186, 3, 64, 52, 217, 226, 250, 124, 123, 5, 202, 38, 147, 118, 126, 255, 82, 85, 212, 207, 206, 59, 227, 47, 16, 58, 17, 182, 189, 28, 42, 223, 183, 170, 213, 119, 248, 152, 2, 44, 154, 163, 70, 221, 153, 101, 155, 167, 43, 172, 9, 129, 22, 39, 253, 19, 98, 108, 110, 79, 113, 224, 232, 178, 185, 112, 104, 218, 246, 97, 228, 251, 34, 242, 193, 238, 210, 144, 12, 191, 179, 162, 241, 81, 51, 145, 235, 249, 14, 239, 107, 49, 192, 214, 31, 181, 199, 106, 157, 184, 84, 204, 176, 115, 121, 50, 45, 127, 4, 150, 254, 138, 236, 205, 93, 222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180, 151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23, 190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203, 117, 35, 11, 32, 57, 177, 33, 88, 237, 149, 56, 87, 174, 20, 125, 136, 171, 168, 68, 175, 74, 165, 71, 134, 139, 48, 27, 166, 77, 146, 158, 231, 83, 111, 229, 122, 60, 211, 133, 230, 220, 105, 92, 41, 55, 46, 245, 40, 244, 102, 143, 54, 65, 25, 63, 161, 1, 216, 80, 73, 209, 76, 132, 187, 208, 89, 18, 169, 200, 196, 135, 130, 116, 188, 159, 86, 164, 100, 109, 198, 173, 186, 3, 64, 52, 217, 226, 250, 124, 123, 5, 202, 38, 147, 118, 126, 255, 82, 85, 212, 207, 206, 59, 227, 47, 16, 58, 17, 182, 189, 28, 42, 223, 183, 170, 213, 119, 248, 152, 2, 44, 154, 163, 70, 221, 153, 101, 155, 167, 43, 172, 9, 129, 22, 39, 253, 19, 98, 108, 110, 79, 113, 224, 232, 178, 185, 112, 104, 218, 246, 97, 228, 251, 34, 242, 193, 238, 210, 144, 12, 191, 179, 162, 241, 81, 51, 145, 235, 249, 14, 239, 107, 49, 192, 214, 31, 181, 199, 106, 157, 184, 84, 204, 176, 115, 121, 50, 45, 127, 4, 150, 254, 138, 236, 205, 93, 222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180 ) ;
+
+float fade( float t )
+{
+    return t * t * t * ( t * ( t * 6 - 15 ) + 10 ) ;
+}
+
+float fade_first_derivative( float t )
+{
+    return 30 * t * t * ( t * ( t - 2 ) + 1 ) ;
+}
+
+float fade_second_derivative( float t )
+{
+    return 60 * t * ( t * ( ( 2 * t ) - 3 ) + 1 ) ;
+}
+
+float interpolate( float t, float a, float b )
+{
+    return a + t * ( b - a ) ;
+}
+
+float gradient( int hash, float x, float y, float z )
+{
+    int h = hash & 15 ;
+    float u = h < 8 ? x : y ;
+    float v = h < 4 ? y : h == 12 || h == 14 ? x : z ;
+    
+    return ( (h&1) == 0 ? u : -u ) + ( (h&2) == 0 ? v : -v ) ;
+}
+
+Noise perlin_noise( vec3 r )
+{
+    Noise noise ;
+    
+    float fx = floor( r.x ) ;
+    float fy = floor( r.y ) ;
+    float fz = floor( r.z ) ;
+    
+    int x = int( fx ) & 255 ;
+    int y = int( fy ) & 255 ;
+    int z = int( fz ) & 255 ;
+
+    r.x -= fx ;
+    r.y -= fy ;
+    r.z -= fz ;
+
+    float u = fade( r.x ) ;
+    float v = fade( r.y ) ;
+    float w = fade( r.z ) ;
+
+    float du = fade_first_derivative( r.x ) ;
+    float dv = fade_first_derivative( r.y ) ;
+    float dw = fade_first_derivative( r.z ) ;
+    
+    float ddu = fade_second_derivative( du ) ;
+    float ddv = fade_second_derivative( dv ) ;
+    float ddw = fade_second_derivative( dw ) ;
+    
+    int a = p[x] + y ;
+    int b = p[x+1] + y ;
+    int c = p[a] + z ;
+    int d = p[a+1] + z ;
+    int e = p[b] + z ;
+    int f = p[b+1] + z ;
+
+    float g_c = gradient( p[c], r.x, r.y, r.z ) ;
+    float g_c1 = gradient( p[c+1], r.x, r.y, r.z-1 ) ;
+    float g_d = gradient( p[d], r.x, r.y-1, r.z ) ;
+    float g_d1 = gradient( p[d+1], r.x, r.y-1, r.z-1 ) ;
+    float g_e = gradient( p[e], r.x-1, r.y, r.z ) ;
+    float g_e1 = gradient( p[e+1], r.x-1, r.y, r.z-1 ) ;
+    float g_f = gradient( p[f], r.x-1, r.y-1, r.z ) ;
+    float g_f1 = gradient( p[f+1], r.x-1, r.y-1, r.z-1 ) ;
+    
+    float i1 = interpolate( u, g_c, g_e ) ;
+    float i2 = interpolate( u, g_d, g_f ) ;
+    float i3 = interpolate( u, g_c1, g_e1 ) ;
+    float i4 = interpolate( u, g_d1, g_f1 ) ;
+    float j1 = interpolate( v, i1, i2 ) ;
+    float j2 = interpolate( v, i3, i4 ) ;
+    
+    noise.value = interpolate( w, j1, j2 ) ;
+    
+    float d1 = g_e - g_c ;
+    float d2 = g_f - g_d ;
+    float d3 = g_e1 - g_c1 ;
+    float d4 = g_f1 - g_d1 ;
+    float d5 = g_d - g_c ;
+    float d6 = g_d1 - g_c1 ;
+    float d7 = g_c1 - g_c ;
+
+    float f1 = d2 - d1 ;
+    float f2 = d4 - d3 ;
+    float f3 = d3 - d1 ;
+    
+    noise.first_derivative.x = du * ( d1 + v * f1 + w * ( d3 + v * f2 ) ) ;
+    noise.first_derivative.y = dv * ( d5 + u * f1 + w * ( d6 + u * f2 ) ) ;
+    noise.first_derivative.z = dw * ( d7 + u * f3 + v * ( d6 + u * f2 ) ) ;
+    
+    noise.second_derivative.x = ddu * ( d1 + ( v * f1 ) + ( w * d3 ) + ( w * v * f2 ) ) ;
+    noise.second_derivative.y = ddv * ( d5 + ( u * f1 ) + ( w * d6 ) + ( w * u * f2 ) ) ;
+    noise.second_derivative.z = ddw * ( d7 + ( u * f3 ) + ( v * d6 ) + ( v * u * f2 ) ) ;
+
+    return noise ;
+}
+
+Noise riged_fBM( vec3 world_position )
+{
+    float lacunarity = 2.0f;
+    int octaves = 20 ;
+    float gain = 2.0f;
+    float offset = 1.0f;
+    float H = 1.0f;
+
+    Noise signal = perlin_noise(world_position);
+
+    signal.value = abs(signal.value);
+    signal.value = offset - signal.value;
+    signal.value *= signal.value;
+
+    signal.first_derivative = -2.0 * (offset - signal.value) * signal.first_derivative;
+    signal.second_derivative = 2.0 * signal.first_derivative * signal.first_derivative
+                               - 2.0 * (offset - signal.value) * signal.second_derivative;
+
+    Noise result;
+    result.value = signal.value;
+    result.first_derivative = signal.first_derivative;
+    result.second_derivative = signal.second_derivative;
+
+    float weight = 1.0;
+    float frequency = lacunarity;
+
+    for (int i = 1; i < octaves; i++) {
+        vec3 temp_position = world_position * frequency;
+
+        weight = signal.value * gain;
+        weight = clamp(weight, 0.0, 1.0); // Ensure weight is clamped
+
+        signal = perlin_noise(temp_position);
+        signal.value = abs(signal.value);
+        signal.value = offset - signal.value;
+        signal.value *= signal.value;
+
+        vec3 dWeight_dPosition = gain * signal.first_derivative;
+        vec3 d2Weight_dPosition = gain * signal.second_derivative;
+
+        signal.first_derivative = weight * signal.first_derivative + signal.value * dWeight_dPosition;
+        signal.second_derivative = weight * signal.second_derivative
+                                   + 2.0 * dWeight_dPosition * signal.first_derivative
+                                   + d2Weight_dPosition * signal.value;
+
+        result.value += signal.value * pow(frequency, -H);
+        result.first_derivative += signal.first_derivative * pow(frequency, -H);
+        result.second_derivative += signal.second_derivative * pow(frequency, -H);
+
+        frequency *= lacunarity;
+    }
+
+    return result;
+}
+
+Noise hybrid_fBM(vec3 world_position)
+{
+    float lacunarity = 2.0f;
+    int octaves = 20 ;
+    float offset = 0.7f;
+    float H = 0.25f;
+    float frequency = 1.0f;
+
+    Noise signal = perlin_noise(world_position);
+    Noise result;
+
+    float amplitude = pow(frequency, -H);
+
+    result.value = (signal.value + offset) * amplitude;
+    result.first_derivative = signal.first_derivative * amplitude;
+    result.second_derivative = signal.second_derivative * amplitude;
+
+    frequency *= lacunarity;
+    float weight = result.value;
+    vec3 dWeight_dPosition = vec3(0.0);
+    vec3 d2Weight_dPosition = vec3(0.0);
+
+    world_position *= lacunarity;
+
+    for (int i = 1; i < octaves; i++){
+        if (weight > 1.0)
+            weight = 1.0;
+
+        signal = perlin_noise(world_position);
+        amplitude = pow(frequency, -H);
+
+        signal.value = (signal.value + offset) * amplitude;
+        signal.first_derivative *= amplitude;
+        signal.second_derivative *= amplitude;
+
+        dWeight_dPosition = weight * signal.first_derivative;
+        d2Weight_dPosition = weight * signal.second_derivative;
+
+        result.value += weight * signal.value;
+        result.first_derivative += weight * signal.first_derivative + signal.value * dWeight_dPosition;
+        result.second_derivative += weight * signal.second_derivative +
+                                    2.0 * dWeight_dPosition * signal.first_derivative +
+                                    d2Weight_dPosition * signal.value;
+
+        weight *= signal.value;
+        world_position *= lacunarity;
+        frequency *= lacunarity;
+    }
+
+    return result;
+}
+
+Noise fBM( vec3 world_position )
+{
+    Noise noise, sample ;
+    float H = 0.5f ;
+    int num_octaves = 20 ;
+    float frequency = 1.0f ;
+    float amplitude = 1.0f ;
+    noise.value = 0.0f ;
+    noise.first_derivative = vec3( 0.0f, 0.0f, 0.0f ) ;
+    noise.second_derivative = vec3( 0.0f, 0.0f, 0.0f ) ;
+
+    for( int i = 0 ; i < num_octaves ; i++ ) {
+        sample = perlin_noise( world_position * frequency ) ;
+        noise.value += sample.value * amplitude ;
+        noise.first_derivative += amplitude * frequency * sample.first_derivative ;
+        noise.second_derivative += amplitude * frequency * frequency * sample.second_derivative ;
+        amplitude *= H ;
+        frequency *= 2.0f ;
+    }
+
+    return noise ;
+}
+
+void main()
+{
+    world_position = gl_TessCoord.x * tcWorldPosition[0] +
+                     gl_TessCoord.y * tcWorldPosition[1] +
+                     gl_TessCoord.z * tcWorldPosition[2] ;
+        
+    Noise noise = hybrid_fBM( 0.1f * world_position ) ;
+
+    height = noise.value ;
+    ao = length( noise.second_derivative ) ;
+    
+    normal = vec3( -noise.first_derivative.x, 1.0f, -noise.first_derivative.z ) ;
+    
+    world_position = (world_position - min_position) / (max_position - min_position) ;
+    world_position = world_position * vec3( 2.0, 0.0f, 2.0f ) ;
+    world_position = world_position - vec3( 1.0, 0.0f, 1.0f ) ;
+
+    gl_Position = vec4( world_position.x, world_position.z, world_position.y , 1.0 ) ;
+}

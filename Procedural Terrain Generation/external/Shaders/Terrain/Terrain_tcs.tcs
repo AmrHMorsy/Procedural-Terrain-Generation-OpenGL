@@ -1,0 +1,45 @@
+#version 330 core
+layout(vertices = 3) out ;
+
+in vec3 world_position[];
+in float visible[] ;
+
+out vec3 tcWorldPosition[];
+
+uniform vec3 camera ;
+
+float get_tesselation_level( float distance )
+{
+    float minTess = 1.0f ;
+    float maxTess = 64.0f ;
+    float minDistance = 1.0f ;
+    float maxDistance = 50.0f ;
+    float factor = clamp((distance - minDistance) / (maxDistance - minDistance), 0.0f, 1.0f) ;
+        
+    return clamp(mix(maxTess, minTess, factor), minTess, maxTess) ;
+}
+
+void main()
+{
+    tcWorldPosition[gl_InvocationID] = world_position[gl_InvocationID] ;
+    
+    bool is_visible = false;
+    for( int i = 0 ; i < 3 ; i++ ){
+        if( visible[i] > 0.0 )
+            is_visible = true ;
+    }
+    
+    if( gl_InvocationID == 0 ){
+        float tessLevel ;
+        if( is_visible ){
+            float distance = length( camera - world_position[gl_InvocationID] ) ;
+            tessLevel = get_tesselation_level( distance ) ;
+        }
+        else
+            tessLevel = 0.0f ;            
+        gl_TessLevelOuter[0] = tessLevel ;
+        gl_TessLevelOuter[1] = tessLevel ;
+        gl_TessLevelOuter[2] = tessLevel ;
+        gl_TessLevelInner[0] = tessLevel ;
+    }
+}

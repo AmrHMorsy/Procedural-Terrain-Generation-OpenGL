@@ -1,0 +1,219 @@
+#version 330 core
+
+layout(triangles, equal_spacing, ccw) in ;
+
+in vec3 tcWorldPosition[] ;
+
+out vec3 world_position ;
+
+out vec3 color ;
+
+uniform vec3 max_position ;
+uniform vec3 min_position ;
+
+vec3 first_derivative ;
+
+const int p[512] = int[512]( 151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23, 190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203, 117, 35, 11, 32, 57, 177, 33, 88, 237, 149, 56, 87, 174, 20, 125, 136, 171, 168, 68, 175, 74, 165, 71, 134, 139, 48, 27, 166, 77, 146, 158, 231, 83, 111, 229, 122, 60, 211, 133, 230, 220, 105, 92, 41, 55, 46, 245, 40, 244, 102, 143, 54, 65, 25, 63, 161, 1, 216, 80, 73, 209, 76, 132, 187, 208, 89, 18, 169, 200, 196, 135, 130, 116, 188, 159, 86, 164, 100, 109, 198, 173, 186, 3, 64, 52, 217, 226, 250, 124, 123, 5, 202, 38, 147, 118, 126, 255, 82, 85, 212, 207, 206, 59, 227, 47, 16, 58, 17, 182, 189, 28, 42, 223, 183, 170, 213, 119, 248, 152, 2, 44, 154, 163, 70, 221, 153, 101, 155, 167, 43, 172, 9, 129, 22, 39, 253, 19, 98, 108, 110, 79, 113, 224, 232, 178, 185, 112, 104, 218, 246, 97, 228, 251, 34, 242, 193, 238, 210, 144, 12, 191, 179, 162, 241, 81, 51, 145, 235, 249, 14, 239, 107, 49, 192, 214, 31, 181, 199, 106, 157, 184, 84, 204, 176, 115, 121, 50, 45, 127, 4, 150, 254, 138, 236, 205, 93, 222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180, 151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23, 190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203, 117, 35, 11, 32, 57, 177, 33, 88, 237, 149, 56, 87, 174, 20, 125, 136, 171, 168, 68, 175, 74, 165, 71, 134, 139, 48, 27, 166, 77, 146, 158, 231, 83, 111, 229, 122, 60, 211, 133, 230, 220, 105, 92, 41, 55, 46, 245, 40, 244, 102, 143, 54, 65, 25, 63, 161, 1, 216, 80, 73, 209, 76, 132, 187, 208, 89, 18, 169, 200, 196, 135, 130, 116, 188, 159, 86, 164, 100, 109, 198, 173, 186, 3, 64, 52, 217, 226, 250, 124, 123, 5, 202, 38, 147, 118, 126, 255, 82, 85, 212, 207, 206, 59, 227, 47, 16, 58, 17, 182, 189, 28, 42, 223, 183, 170, 213, 119, 248, 152, 2, 44, 154, 163, 70, 221, 153, 101, 155, 167, 43, 172, 9, 129, 22, 39, 253, 19, 98, 108, 110, 79, 113, 224, 232, 178, 185, 112, 104, 218, 246, 97, 228, 251, 34, 242, 193, 238, 210, 144, 12, 191, 179, 162, 241, 81, 51, 145, 235, 249, 14, 239, 107, 49, 192, 214, 31, 181, 199, 106, 157, 184, 84, 204, 176, 115, 121, 50, 45, 127, 4, 150, 254, 138, 236, 205, 93, 222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180 ) ;
+
+float fade( float t )
+{
+    return t * t * t * ( t * ( t * 6 - 15 ) + 10 ) ;
+}
+
+float fade_first_derivative( float t )
+{
+    return 30 * t * t * ( t * ( t - 2 ) + 1 ) ;
+}
+
+float fade_second_derivative( float t )
+{
+    return 60 * t * ( t * ( ( 2 * t ) - 3 ) + 1 ) ;
+}
+
+float interpolate( float t, float a, float b )
+{
+    return a + t * ( b - a ) ;
+}
+
+float gradient( int hash, float x, float y, float z )
+{
+    int h = hash & 15 ;
+    float u = h < 8 ? x : y ;
+    float v = h < 4 ? y : h == 12 || h == 14 ? x : z ;
+    
+    return ( (h&1) == 0 ? u : -u ) + ( (h&2) == 0 ? v : -v ) ;
+}
+
+vec4 perlin_noise( vec3 r )
+{
+    float noise ;
+    
+    float fx = floor( r.x ) ;
+    float fy = floor( r.y ) ;
+    float fz = floor( r.z ) ;
+    
+    int x = int( fx ) & 255 ;
+    int y = int( fy ) & 255 ;
+    int z = int( fz ) & 255 ;
+
+    r.x -= fx ;
+    r.y -= fy ;
+    r.z -= fz ;
+
+    float u = fade( r.x ) ;
+    float v = fade( r.y ) ;
+    float w = fade( r.z ) ;
+
+    float du = fade_first_derivative( r.x ) ;
+    float dv = fade_first_derivative( r.y ) ;
+    float dw = fade_first_derivative( r.z ) ;
+    
+    float ddu = fade_second_derivative( du ) ;
+    float ddv = fade_second_derivative( dv ) ;
+    float ddw = fade_second_derivative( dw ) ;
+    
+    int a = p[x] + y ;
+    int b = p[x+1] + y ;
+    int c = p[a] + z ;
+    int d = p[a+1] + z ;
+    int e = p[b] + z ;
+    int f = p[b+1] + z ;
+
+    float g_c = gradient( p[c], r.x, r.y, r.z ) ;
+    float g_c1 = gradient( p[c+1], r.x, r.y, r.z-1 ) ;
+    float g_d = gradient( p[d], r.x, r.y-1, r.z ) ;
+    float g_d1 = gradient( p[d+1], r.x, r.y-1, r.z-1 ) ;
+    float g_e = gradient( p[e], r.x-1, r.y, r.z ) ;
+    float g_e1 = gradient( p[e+1], r.x-1, r.y, r.z-1 ) ;
+    float g_f = gradient( p[f], r.x-1, r.y-1, r.z ) ;
+    float g_f1 = gradient( p[f+1], r.x-1, r.y-1, r.z-1 ) ;
+    
+    float i1 = interpolate( u, g_c, g_e ) ;
+    float i2 = interpolate( u, g_d, g_f ) ;
+    float i3 = interpolate( u, g_c1, g_e1 ) ;
+    float i4 = interpolate( u, g_d1, g_f1 ) ;
+    float j1 = interpolate( v, i1, i2 ) ;
+    float j2 = interpolate( v, i3, i4 ) ;
+    
+    noise = interpolate( w, j1, j2 ) ;
+    
+    float d1 = g_e - g_c ;
+    float d2 = g_f - g_d ;
+    float d3 = g_e1 - g_c1 ;
+    float d4 = g_f1 - g_d1 ;
+    float d5 = g_d - g_c ;
+    float d6 = g_d1 - g_c1 ;
+    float d7 = g_c1 - g_c ;
+
+    float f1 = d2 - d1 ;
+    float f2 = d4 - d3 ;
+    float f3 = d3 - d1 ;
+
+    vec3 first_derivative ;
+    first_derivative.x = du * ( d1 + v * f1 + w * ( d3 + v * f2 ) ) ;
+    first_derivative.y = dv * ( d5 + u * f1 + w * ( d6 + u * f2 ) ) ;
+    first_derivative.z = dw * ( d7 + u * f3 + v * ( d6 + u * f2 ) ) ;
+
+    return vec4(noise, first_derivative) ;
+}
+
+vec4 fBM( vec3 r, int num_octaves )
+{
+    vec4 noise, sample ;
+    noise = vec4(0.0f) ;
+    float H = 0.5f ;
+    float frequency = 1.0f ;
+    float amplitude = 1.0f ;
+    
+    for( int i = 0 ; i < num_octaves ; i++ ) {
+        sample = perlin_noise( r * frequency ) ;
+        noise.x += sample.x * amplitude ;
+        noise.yzw += amplitude * frequency * sample.yzw ;
+        amplitude *= H ;
+        frequency *= 2.0f ;
+    }
+
+    return noise ;
+}
+
+vec3 compute_color()
+{
+    float noise = fBM( world_position, 1 ).x ;
+    noise = ( noise + 1 ) / 2.0f ;
+    vec3 rock1 = mix( vec3(111.0f/255.0f, 65.0f/255.0f, 23.0f/255.0f), vec3(57.0f/255.0f, 29.0f/255.0f, 0), noise ) ;
+    
+    float noise1 = fBM( noise * world_position, 1 ).x ;
+    noise1 = ( noise1 + 1 ) / 2.0f ;
+    vec3 rock2 = mix( vec3(98.0f/255.0f, 91.0f/255.0f, 91.0f/255.0f), vec3(79.0f/255.0f, 69.0f/255.0f, 73.0f/255.0f), noise1 ) ;
+
+    float noise2 = fBM( noise1 * world_position, 1 ).x ;
+    noise2 = ( noise2 + 1 )/2.0f ;
+    vec3 rock3 = mix( vec3(62.0f/255.0f, 55.0f/255.0f, 62.0f/255.0f), rock2, noise2 ) ;
+        
+    float noise3 = fBM( noise2 * world_position, 1 ).x ;
+    noise3 = ( noise3 + 1 )/2.0f ;
+    vec3 rock = mix( rock3, rock1, noise3 ) ;
+
+    float noise4 = fBM( noise3 * world_position, 1 ).x ;
+    noise4 = ( noise4 + 1 ) / 2.0f ;
+    vec3 grass1 = mix( vec3( 71.0f/255.0f, 218.0f/255.0f, 116.0f/255.0f ), vec3( 30.0f/255.0f, 196.0f/255.0f, 100.0f/255.0f ), noise4 ) ;
+    
+    float noise5 = fBM( noise4 * world_position, 1 ).x ;
+    noise5 = ( noise5 + 1 ) / 2.0f ;
+    vec3 grass2 = mix( vec3( 35.0f/255.0f, 144.0f/255.0f, 79.0f/255.0f ), vec3( 85.0f/255.0f, 65.0f/255.0f, 36.0f/255.0f ), noise5 ) ;
+
+    float noise6 = fBM( noise5 * world_position, 1 ).x ;
+    noise6 = ( noise6 + 1 )/2.0f ;
+    vec3 grass3 = mix( vec3( 60.0f/255.0f, 37.0f/255.0f, 21.0f/255.0f ), grass2, noise6 ) ;
+        
+    float noise7 = fBM( noise6 * world_position, 1 ).x ;
+    noise7 = ( noise7 + 1 )/2.0f ;
+    vec3 grass = mix( grass3, grass1, noise7 ) ;
+
+    float noise8 = fBM( noise7 * world_position, 1 ).x ;
+    noise8 = ( noise8 + 1 )/2.0f ;
+    vec3 snow1 = mix( vec3(148.0f/255.0f,242.0f/255.0f,244.0f/255.0f), vec3(236.0f/255.0f,255.0f/255.0f,253.0f/255.0f), noise8 ) ;
+    
+    float noise9 = fBM( noise8 * world_position, 1 ).x ;
+    noise9 = ( noise9 + 1 )/2.0f ;
+    vec3 snow2 = mix( vec3(208.0f/255.0f,236.0f/255.0f,235.0f/255.0f), vec3(160.0f/255.0f,230.0f/255.0f,236.0f/255.0f), noise9 ) ;
+
+    float noise10 = fBM( noise9 * world_position, 1 ).x ;
+    noise10 = ( noise10 + 1 )/2.0f ;
+    vec3 snow3 = mix( vec3(255.0f/255.0f,255.0f/255.0f,255.0f/255.0f), snow2, noise10 ) ;
+    
+    float noise11 = fBM( noise10 * world_position, 1 ).x ;
+    noise11 = ( noise11 + 1 ) / 2.0f ;
+    vec3 snow = mix( snow1, snow3, noise11 ) ;
+
+    float noise12 = fBM( 0.1f * world_position, 10 ).x ;
+    noise12 = ( noise12 + 1 ) / 2.0f ;
+  
+    float snowFactor = smoothstep( 0.6f, 0.8f, noise12 ) ;
+    float rockFactor = smoothstep( 0.2f, 0.6f, noise12 ) ;
+    float grassFactor = 1.0f - rockFactor;
+
+    vec3 color = snow * snowFactor + rock * rockFactor + grass * grassFactor ;
+    
+    float noise13 = fBM( noise11 * noise12 * world_position, 20 ).x ;
+    noise13 = ( noise13 + 1 ) / 2.0f ;
+    
+    float cracksFactor = smoothstep( 0.3f, 1.0f, noise13 ) ;
+    
+    vec3 crackColor = vec3(0.1f, 0.1f, 0.1f) * (0.5f + 0.5f * noise13) ;
+    return color * (1-cracksFactor) + crackColor * cracksFactor ;
+}
+
+void main()
+{
+    world_position = gl_TessCoord.x * tcWorldPosition[0] +
+                     gl_TessCoord.y * tcWorldPosition[1] +
+                     gl_TessCoord.z * tcWorldPosition[2] ;
+                     
+    color = compute_color() ;
+    
+    world_position = (world_position - min_position) / (max_position - min_position) ;
+    world_position = world_position * vec3( 2.0, 0.0f, 2.0f ) ;
+    world_position = world_position - vec3( 1.0, 0.0f, 1.0f ) ;
+    gl_Position = vec4( world_position.x, world_position.z, world_position.y , 1.0 ) ;
+}
