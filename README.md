@@ -17,13 +17,11 @@ Real-time Procedural Terrain Generation developed in C++ and OpenGL, capable of 
 
 ### Volumetric Fog
 
-![ptg7](https://github.com/user-attachments/assets/9387499d-d74f-4834-a874-94beec913997)
+![ptg8](https://github.com/user-attachments/assets/73bf7d11-16af-45f6-93e9-4ec527d3664d)
 
 ### Infinite Terrains
 
-![ptg8](https://github.com/user-attachments/assets/73bf7d11-16af-45f6-93e9-4ec527d3664d)
-
-## Performance Optimization 
+![ptg7](https://github.com/user-attachments/assets/9387499d-d74f-4834-a874-94beec913997)
 
 ### Frustum Culling 
 
