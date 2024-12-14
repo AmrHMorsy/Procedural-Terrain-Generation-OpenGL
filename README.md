@@ -17,6 +17,7 @@ Real-time Procedural Terrain Generation developed in C++ and OpenGL, capable of 
 
 ### Volumetric Fog
 
+This technique simulates fog by estimating the density of the fog particles in the regions of space visibile to the camera and then uses raymarching to calculate the amount of light that reaches the camera after the physical interaction of the fog particles with the incoming light. Noise-based functions were used to estimate the fog color, the fog density, the scattering coeficient and the asymmetry parameter (g) of the Henyey-Greenstein phase function, which is a mathematical model used to describe the scattering of light in mediums such as fog, clouds and water. 
 
 ![ptg8](https://github.com/user-attachments/assets/73bf7d11-16af-45f6-93e9-4ec527d3664d)
 
