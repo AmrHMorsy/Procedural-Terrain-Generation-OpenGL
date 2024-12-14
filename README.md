@@ -27,13 +27,17 @@ As the camera moves in any of the XZ directions, more unique terrains are genera
 
 ![ptg7](https://github.com/user-attachments/assets/9387499d-d74f-4834-a874-94beec913997)
 
+## Optimizations 
+
 ### Frustum Culling 
 
 Frustum culling is used to optimize performance by rendering only the terrain patches that are inside the view frustum of the camera. The terrain patches that are outside the camera's field of view are not rendered, reducing processing load and saving the computation that would have been otherwise wasted in noise computation and terrain shading; thus improving the FPS. 
 
 ![ptg4](https://github.com/user-attachments/assets/0ac1c019-bf1c-4fa2-a3e0-764d5d48da79)
 
-### Texture Baking 
+### Baking Data
+
+Computing noise-based height, ambient occlusion, normal, roughness and albedo every frame would be naive, since these data do not change from frame to frame and do not depend on external dynamic parameters such as camera position. Therefore, these data can be precomputed or baked into textures only once during the program initialization, and then are sampled from in real-time during rendering. This optimization alone significantly improved the FPS. 
 
 ![ptg9](https://github.com/user-attachments/assets/213734cf-4ba6-46bb-9050-739836ec0b53)
 
@@ -41,6 +45,7 @@ Frustum culling is used to optimize performance by rendering only the terrain pa
 
 This project is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.  
 [Read the full license here](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+
 
 ## Installation
 
