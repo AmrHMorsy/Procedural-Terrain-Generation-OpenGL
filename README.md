@@ -17,9 +17,12 @@ Real-time Procedural Terrain Generation developed in C++ and OpenGL, capable of 
 
 ### Volumetric Fog
 
+
 ![ptg8](https://github.com/user-attachments/assets/73bf7d11-16af-45f6-93e9-4ec527d3664d)
 
 ### Infinite Terrains
+
+As the camera moves in any of the XZ directions, more unique terrains are generated, giving the ilusion of infinite terrains. It works by translating terrain patches that are behind the camera to the front and recalculating the noise to generate new unique height maps. This trick simulates infinite terrains, but keeps the total number of terrain patches constant. 
 
 ![ptg7](https://github.com/user-attachments/assets/9387499d-d74f-4834-a874-94beec913997)
 
