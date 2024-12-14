@@ -12,10 +12,6 @@ Real-time Procedural Terrain Generation developed in C++/OpenGL, capable of gene
 
 ![ptg4](https://github.com/user-attachments/assets/0ac1c019-bf1c-4fa2-a3e0-764d5d48da79)
 
-![ptg5](https://github.com/user-attachments/assets/c17feff3-3d22-4785-85e0-01b25ca44043)
-
-![ptg6](https://github.com/user-attachments/assets/8f6be73d-5afe-4de5-87d8-568947872fd4)
-
 ![ptg7](https://github.com/user-attachments/assets/9387499d-d74f-4834-a874-94beec913997)
 
 ![ptg8](https://github.com/user-attachments/assets/73bf7d11-16af-45f6-93e9-4ec527d3664d)
