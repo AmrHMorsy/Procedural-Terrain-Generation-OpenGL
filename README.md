@@ -17,3 +17,40 @@ Real-time Procedural Terrain Generation developed in C++/OpenGL, capable of gene
 ![ptg8](https://github.com/user-attachments/assets/73bf7d11-16af-45f6-93e9-4ec527d3664d)
 
 ![ptg9](https://github.com/user-attachments/assets/213734cf-4ba6-46bb-9050-739836ec0b53)
+
+## License
+
+This project is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.  
+[Read the full license here](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+
+## Installation
+
+1. Clone the repository:
+```
+git clone https://github.com/AmrHMorsy/ocean_simulation-.git
+```
+2. Navigate to the project directory: 
+```
+cd Ocean_Simulation
+```
+3. Create a build directory: 
+```
+mkdir build
+```
+4. Navigate to the build directory: 
+```
+cd build
+```
+5. Generate makefiles using cmake: 
+```
+cmake ../
+```
+6. compile using makefile: 
+```
+make
+```
+7. Run the program: 
+```
+./ocean_simulation
+```
+<br>
