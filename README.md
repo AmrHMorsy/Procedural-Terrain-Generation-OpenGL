@@ -45,11 +45,11 @@ This project is licensed under the Creative Commons Attribution-NonCommercial-No
 
 1. Clone the repository:
 ```
-git clone https://github.com/AmrHMorsy/ocean_simulation-.git
+git clone https://github.com/AmrHMorsy/procedural-terrain-generation-opengl-.git
 ```
 2. Navigate to the project directory: 
 ```
-cd Ocean_Simulation
+cd procedural-terrain-generation-opengl
 ```
 3. Create a build directory: 
 ```
@@ -69,6 +69,12 @@ make
 ```
 7. Run the program: 
 ```
-./ocean_simulation
+./procedural-terrain-generation-opengl
 ```
 <br>
+
+## References 
+
+- Ebert, D. S., Musgrave, F. K., Peachey, D., Perlin, K., & Worley, S. (2003). Texturing and Modeling: A Procedural Approach (3rd ed.). Chapter 14: A Brief Introduction to Fractals. Morgan Kaufmann Publishers.
+  
+- Ebert, D. S., Musgrave, F. K., Peachey, D., Perlin, K., & Worley, S. (2003). Texturing and Modeling: A Procedural Approach (3rd ed.). Chapter 16: Procedural Fractals Terrains. Morgan Kaufmann Publishers.
