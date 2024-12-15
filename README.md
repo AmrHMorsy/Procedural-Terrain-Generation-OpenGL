@@ -13,11 +13,26 @@ Real-time Procedural Terrain Generation developed in C++ and OpenGL, capable of 
 
 ### Shading 
 
-The shading and the colors of the terrains are computed and generated procedurally without relying on any pre-made texture assets.
+The terrain's shading and colors are procedurally generated, without relying on pre-made texture assets.
 
 #### Albedo Color
 
-The main three elements of the terrain are rocks, grass and snow. Multi-layered noise functions are used to compute the colors of these elements by mixing and interpolating many different color shades. These colors are then combined based on the altitude of each point in the terrain. Lower altitude regions tend to have more grass and higher altitude regions tend to have more snow. Finally, noise-based functions are used again to mix the final terrain color with different streaks of dark colors to simulate cracks in the terrain. These color data were precomputed or baked once during program initialization and then stored in a texture. This color texture or map is then sampled from in real-time during rendering. 
+The terrrain consists of three main elements: Rocks, grass and snow. Multi-layered noise functions generate the albedo colors for these elements by blending various color shades. The colors are interpolated together based on altitudes: Lower altitudes feature more grass, while higher altitudes transition to snow. Noise-based functions further enhance the realism by adding dark streaks to simulate terrain cracks. This color data is precomputed during program initialization and stored in a texture for real-time sampling during rendering.
+
+
+#### Normal
+
+The normal vector at a point in the terrain is computed using the first derivative of the height function. This derivative determines the slope of the terrain, representing changes in height, and is used to compute the normal vector at each point. The derivative is analytically precomputed within the noise function and stored alongside the height data in a texture for efficient real-time sampling during rendering.
+
+
+#### Roughness 
+
+Roughness is a measure of how smooth the surface of the terrain is and is essential for computing Physically Based Rendering (PBR) and Image-Based Lighting (IBL) functions. It is estimated using the first derivative of the height function, which represents the terrain's slope and variability, and is stored alongside the height and normal data in the baked texture. 
+
+
+#### Ambient Occlusion 
+
+Ambient occlusion quantifies how much ambient light is blocked at a given point on the terrain. It is approxmiated using the second derivative of the height function, which represents the terrain's curvature or slope variation, and is essential for computing Image-Based Lighting (IBL) functions. The derivative is analytically precomputed within the noise function and stored in a texture for efficient real-time sampling during rendering.
 
 ![ptg3](https://github.com/user-attachments/assets/3731540d-3d6f-49da-a9d0-921337869346)
 
