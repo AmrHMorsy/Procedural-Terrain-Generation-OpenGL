@@ -21,7 +21,7 @@ The terrain's shading and colors are procedurally generated, without relying on 
 
 #### Albedo Color
 
-The terrrain consists of three main elements: Rocks, grass and snow. Multi-layered noise functions generate the albedo colors for these elements by blending various color shades. The colors are interpolated together based on altitudes: Lower altitudes feature more grass, while higher altitudes transition to snow. Noise-based functions further enhance the realism by adding dark streaks to simulate terrain cracks. This color data is precomputed during program initialization and stored in a texture for real-time sampling during rendering.
+The terrain consists of three main elements: Rocks, grass and snow. Multi-layered noise functions generate the albedo colors for these elements by blending various color shades. The colors are interpolated together based on altitudes: Lower altitudes feature more grass, while higher altitudes transition to snow. Noise-based functions further enhance the realism by adding dark streaks to simulate terrain cracks. This color data is precomputed during program initialization and stored in a texture for real-time sampling during rendering.
 
 
 #### Normal
@@ -42,13 +42,13 @@ Ambient occlusion quantifies how much ambient light is blocked at a given point 
 
 ### Volumetric Fog
 
-This technique simulates fog by estimating the density of the fog particles in the regions of space visibile to the camera and then uses raymarching to calculate the amount of light that reaches the camera after the physical interaction of the fog particles with the incoming light. Noise-based functions were used to estimate the fog color, the fog density, the scattering coeficient and the asymmetry parameter (g) of the Henyey-Greenstein phase function, which is a mathematical model used to describe the scattering of light in mediums such as fog, clouds and water. 
+This technique simulates fog by estimating the density of the fog particles in the regions of space visibile to the camera and then uses raymarching to calculate the amount of light that reaches the camera after the physical interaction of the fog particles with the incoming light. Noise-based functions were used to estimate the fog color, the fog density, the scattering coefficient and the asymmetry parameter (g) of the Henyey-Greenstein phase function, which is a mathematical model used to describe the scattering of light in mediums such as fog, clouds and water. 
 
 ![ptg8](https://github.com/user-attachments/assets/73bf7d11-16af-45f6-93e9-4ec527d3664d)
 
 ### Infinite Terrains
 
-As the camera moves in any of the XZ directions, more unique terrains are generated, giving the ilusion of infinite terrains. It works by translating terrain patches that are behind the camera to the front and recalculating the noise to generate new unique height maps. This trick simulates infinite terrains, but keeps the total number of terrain patches constant. 
+As the camera moves in any of the XZ directions, more unique terrains are generated, giving the illusion of infinite terrains. It works by translating terrain patches that are behind the camera to the front and recalculating the noise to generate new unique height maps. This trick simulates infinite terrains, but keeps the total number of terrain patches constant. 
 
 ![ptg7](https://github.com/user-attachments/assets/9387499d-d74f-4834-a874-94beec913997)
 
@@ -62,7 +62,7 @@ Frustum culling is used to optimize performance by rendering only the terrain pa
 
 ### Baking Data
 
-Computing noise-based height, ambient occlusion, normal, roughness and albedo every frame would be naive, since these data do not change from frame to frame and do not depend on external dynamic parameters such as camera position. Therefore, these data can be precomputed or baked into textures only once during the program initialization, and then are sampled from in real-time during rendering. This optimization alone significantly improved the FPS. 
+Computing noise-based height, ambient occlusion, normal, roughness and albedo every frame would be inefficient, since these data do not change from frame to frame and do not depend on external dynamic parameters such as camera position. Therefore, these data can be precomputed or baked into textures only once during the program initialization, and then are sampled from in real-time during rendering. This optimization alone significantly improved the FPS. 
 
 ![ptg9](https://github.com/user-attachments/assets/213734cf-4ba6-46bb-9050-739836ec0b53)
 
@@ -106,6 +106,6 @@ make
 
 ## References 
 
-- Ebert, D. S., Musgrave, F. K., Peachey, D., Perlin, K., & Worley, S. (2003). Texturing and Modeling: A Procedural Approach (3rd ed.). Chapter 14: A Brief Introduction to Fractals. Morgan Kaufmann Publishers.
+- Ebert, D. S., Musgrave, F. K., Peachey, D., Perlin, K., & Worley, S. (2003). *Texturing and Modeling: A Procedural Approach (3rd ed.)*. Chapter 14: A Brief Introduction to Fractals. Morgan Kaufmann Publishers.
   
-- Ebert, D. S., Musgrave, F. K., Peachey, D., Perlin, K., & Worley, S. (2003). Texturing and Modeling: A Procedural Approach (3rd ed.). Chapter 16: Procedural Fractals Terrains. Morgan Kaufmann Publishers.
+- Ebert, D. S., Musgrave, F. K., Peachey, D., Perlin, K., & Worley, S. (2003). *Texturing and Modeling: A Procedural Approach (3rd ed.)*. Chapter 16: Procedural Fractals Terrains. Morgan Kaufmann Publishers.
