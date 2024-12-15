@@ -13,6 +13,12 @@ Real-time Procedural Terrain Generation developed in C++ and OpenGL, capable of 
 
 ### Shading 
 
+The shading and the colors of the terrains are computed and generated procedurally without relying on any pre-made texture assets.
+
+#### Albedo Color
+
+The main three elements of the terrain are rocks, grass and snow. Multi-layered noise functions are used to compute the colors of these elements by mixing and interpolating many different color shades. These colors are then combined based on the altitude of each point in the terrain. Lower altitude regions tend to have more grass and higher altitude regions tend to have more snow. Finally, noise-based functions are used again to mix the final terrain color with different streaks of dark colors to simulate cracks in the terrain. These color data were precomputed or baked once during program initialization and then stored in a texture. This color texture or map is then sampled from in real-time during rendering. 
+
 ![ptg3](https://github.com/user-attachments/assets/3731540d-3d6f-49da-a9d0-921337869346)
 
 ### Volumetric Fog
