@@ -9,7 +9,9 @@ Real-time Procedural Terrain Generation developed in C++ and OpenGL, capable of 
 
 ### Noise
 
-The base noise function used is perlin noise. This function is used within a domain-warped Fractal Brownian Motion function (fBM) with multiple octaves to simulate and approximate the geomorphological and jagged features of the terrains that are caused by erosion and tectonics. However, the original version of the fBM function generate only homeogenous terrains. These terrains are overly simplistic and unrealistic, since they assume that all patches of the terrain has the same roughness. Nature is decidedly not so simple and well behaved. Real landscapes are quite heterogeneous, which is why multifractal terrain models are used. These models approximate certain erosion features, without overly compromising the elegance and computational efficiency of the original fBm model. They follow the patterrn where low-lying terrain areas sometimes tend to fill up with silt and become topographically smoother, while erosive processes may tend to keep higher areas more jagged.
+The base noise function used is perlin noise. This function is used within a domain-warped Fractal Brownian Motion function (fBM) with multiple octaves to simulate and approximate the geomorphological and jagged features of the terrains that are caused by erosion and tectonics. However, the original version of the fBM function generate only homogeneous terrains. These terrains are overly simplistic and unrealistic, since they assume that all patches of the terrain has the same roughness. 
+
+Nature is decidedly not so simple and well behaved. Real landscapes are quite heterogeneous, which is why multifractal terrain models are used. These models approximate certain erosion features, without overly compromising the elegance and computational efficiency of the original fBm model. They generate terrains where low-lying terrain areas are topographically smoother, since they sometimes tend to fill up with silt, and higher areas more jagged, due to the erosive processes. 
 
 ![ptg2](https://github.com/user-attachments/assets/dfa97049-2cb8-4eed-824f-4a0d688f7844)
 
