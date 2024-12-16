@@ -109,3 +109,5 @@ make
 - Ebert, D. S., Musgrave, F. K., Peachey, D., Perlin, K., & Worley, S. (2003). *Texturing and Modeling: A Procedural Approach (3rd ed.)*. Chapter 14: A Brief Introduction to Fractals. Morgan Kaufmann Publishers.
   
 - Ebert, D. S., Musgrave, F. K., Peachey, D., Perlin, K., & Worley, S. (2003). *Texturing and Modeling: A Procedural Approach (3rd ed.)*. Chapter 16: Procedural Fractals Terrains. Morgan Kaufmann Publishers.
+
+- Scratchpixel. [Perlin Noise](https://www.scratchapixel.com/lessons/procedural-generation-virtual-worlds/perlin-noise-part-2/perlin-noise.html)
