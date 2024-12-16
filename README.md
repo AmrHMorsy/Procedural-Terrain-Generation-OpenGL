@@ -106,6 +106,8 @@ make
 
 ## References 
 
+- Perlin, K. (2002). Improving Noise.
+  
 - Ebert, D. S., Musgrave, F. K., Peachey, D., Perlin, K., & Worley, S. (2003). *Texturing and Modeling: A Procedural Approach (3rd ed.)*. Chapter 14: A Brief Introduction to Fractals. Morgan Kaufmann Publishers.
   
 - Ebert, D. S., Musgrave, F. K., Peachey, D., Perlin, K., & Worley, S. (2003). *Texturing and Modeling: A Procedural Approach (3rd ed.)*. Chapter 16: Procedural Fractals Terrains. Morgan Kaufmann Publishers.
